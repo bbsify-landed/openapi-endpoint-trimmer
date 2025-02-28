@@ -28,6 +28,10 @@ program
     "-p, --prefixes <path>",
     "A comma-separated, zero-spaces list of paths to keep. (Ex. /api/v1/users,/api/v1/organizations)"
   )
+  .option(
+    "-e, --exact-urls <exact-urls>",
+    "A comma-separated, zero-spaces list of exact URLs to keep. (Ex. /api/v1/users,/api/v1/organizations)"
+  )
   .option("--help", "Display all flags, commands, and descriptions.");
 
 program.parse();
@@ -81,6 +85,16 @@ let parsed = load(data) as { paths: Record<string, object> };
 const paths: Record<string, object> = {};
 for (const path of Object.keys(parsed.paths)) {
   if (prefixes.some((retain) => path.startsWith(retain))) {
+    paths[path] = parsed.paths[path];
+  }
+}
+
+const exactUrls = options.exactUrls.split(",");
+console.log(
+  chalk.gray(`Trimming to just exact paths ${exactUrls.join(", ")}...`)
+);
+for (const path of exactUrls) {
+  if (parsed.paths[path]) {
     paths[path] = parsed.paths[path];
   }
 }
