@@ -14,6 +14,7 @@ program
     .option("-o, --output <output>", "Output File")
     .option("-v, --version", "Display the current version.")
     .option("-p, --prefixes <path>", "A comma-separated, zero-spaces list of paths to keep. (Ex. /api/v1/users,/api/v1/organizations)")
+    .option("-e, --exact-urls <exact-urls>", "A comma-separated, zero-spaces list of exact URLs to keep. (Ex. /api/v1/users,/api/v1/organizations)")
     .option("--help", "Display all flags, commands, and descriptions.");
 program.parse();
 if (program.opts().help) {
@@ -30,6 +31,7 @@ const options = z
     url: z.string().url().optional(),
     output: z.string(),
     prefixes: z.string(),
+    exactUrls: z.string(),
 })
     .refine((data) => {
     if ((data.input && data.url) || (!data.input && !data.url)) {
@@ -58,6 +60,13 @@ let parsed = load(data);
 const paths = {};
 for (const path of Object.keys(parsed.paths)) {
     if (prefixes.some((retain) => path.startsWith(retain))) {
+        paths[path] = parsed.paths[path];
+    }
+}
+const exactUrls = options.exactUrls.split(",");
+console.log(chalk.gray(`Trimming to just exact paths ${exactUrls.join(", ")}...`));
+for (const path of exactUrls) {
+    if (parsed.paths[path]) {
         paths[path] = parsed.paths[path];
     }
 }
