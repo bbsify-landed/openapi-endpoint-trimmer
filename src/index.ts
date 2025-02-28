@@ -38,8 +38,8 @@ const options = z
     input: z.string().optional(),
     url: z.string().url().optional(),
     output: z.string(),
-    prefixes: z.string(),
-    exactUrls: z.string(),
+    prefixes: z.string().optional(),
+    exactUrls: z.string().optional(),
   })
   .refine((data) => {
     if ((data.input && data.url) || (!data.input && !data.url)) {
@@ -64,23 +64,27 @@ if (options.input) {
   throw new Error(`Found neither an input URL or an input file!`);
 }
 
-const prefixes = options.prefixes.split(",");
-console.log(chalk.gray(`Trimming to just paths ${prefixes.join(", ")}...`));
-
 let parsed = load(data) as { paths: Record<string, object> };
-
 const paths: Record<string, object> = {};
-for (const path of Object.keys(parsed.paths)) {
-  if (prefixes.some((retain) => path.startsWith(retain))) {
-    paths[path] = parsed.paths[path];
+
+if (options.prefixes) {
+  const prefixes = options.prefixes.split(",");
+  console.log(chalk.gray(`Trimming to just paths ${prefixes.join(", ")}...`));
+
+  for (const path of Object.keys(parsed.paths)) {
+    if (prefixes.some((retain) => path.startsWith(retain))) {
+      paths[path] = parsed.paths[path];
+    }
   }
 }
 
-const exactUrls = options.exactUrls.split(",");
-console.log(chalk.gray(`Trimming to just exact paths ${exactUrls.join(", ")}...`));
-for (const path of exactUrls) {
-  if (parsed.paths[path]) {
-    paths[path] = parsed.paths[path];
+if (options.exactUrls) {
+  const exactUrls = options.exactUrls.split(",");
+  console.log(chalk.gray(`Trimming to just exact paths ${exactUrls.join(", ")}...`));
+  for (const path of exactUrls) {
+    if (parsed.paths[path]) {
+      paths[path] = parsed.paths[path];
+    }
   }
 }
 
